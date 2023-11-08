@@ -5,7 +5,7 @@
 
 # If VENDOR or BOARD is specified, try to find a match.
 if(DEFINED VENDOR OR DEFINED BOARD)
-    include("${CMAKE_CURRENT_LIST_DIR}/tools/cmake/afr_utils.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/tool/cmake/afr_utils.cmake")
 
     set(matched_boards)
     afr_get_boards(all_boards)
@@ -37,7 +37,7 @@ if(DEFINED COMPILER)
                 need to delete cache and reconfigure if you want to switch compiler.")
         endif()
     else()
-        set(toolchain_dir "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/toolchains")
+        set(toolchain_dir "${CMAKE_CURRENT_LIST_DIR}/tool/cmake/toolchains")
         set(toolchain_file "${toolchain_dir}/${COMPILER}.cmake")
         if(EXISTS "${toolchain_file}")
             set(CMAKE_TOOLCHAIN_FILE "${toolchain_file}" CACHE INTERNAL "")
