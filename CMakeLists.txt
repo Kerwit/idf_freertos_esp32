@@ -1,121 +1,210 @@
-cmake_minimum_required(VERSION 3.5)
-project(esp-idf C CXX ASM)
+cmake_minimum_required(VERSION 3.13)
 
-if(CMAKE_CURRENT_LIST_DIR STREQUAL CMAKE_SOURCE_DIR)
-    message(FATAL_ERROR "Current directory '${CMAKE_CURRENT_LIST_DIR}' is not buildable. "
-    "Change directories to one of the example projects in '${CMAKE_CURRENT_LIST_DIR}/examples' and try "
-    "again.")
+# Disable in-source build.
+if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+    message(FATAL_ERROR "In-source build is not allowed, please use a separate build folder.")
 endif()
 
-unset(compile_options)
-unset(c_compile_options)
-unset(cxx_compile_options)
-unset(compile_definitions)
-unset(link_options)
+project(amazon-freertos)
+set(PROJECT_VERSION "202203.00")
+set(PROJECT_VERSION_MAJOR "202203")
+set(PROJECT_VERSION_MINOR "00")
 
-# Add the following build specifications here, since these seem to be dependent
-# on config values on the root Kconfig.
+# If it's TI boards, enable split mbedtls source build to 
+# shorten the build command length to avoid "The command line is too long" error.
+if (AFR_BOARD STREQUAL ti.cc3220_launchpad)
+    set(AFR_SEPARATE_MBEDTLS_SOURCE_BUILD TRUE)
+else()
+    set(AFR_SEPARATE_MBEDTLS_SOURCE_BUILD FALSE)
+endif()
 
-if(NOT BOOTLOADER_BUILD)
+# Import global configurations.
+include("tools/cmake/afr.cmake")
 
-    if(CONFIG_COMPILER_OPTIMIZATION_SIZE)
-        list(APPEND compile_options "-Os")
-        list(APPEND compile_options "-freorder-blocks")
-    elseif(CONFIG_COMPILER_OPTIMIZATION_DEFAULT)
-        list(APPEND compile_options "-Og")
-    elseif(CONFIG_COMPILER_OPTIMIZATION_NONE)
-        list(APPEND compile_options "-O0")
-    elseif(CONFIG_COMPILER_OPTIMIZATION_PERF)
-        list(APPEND compile_options "-O2")
+# Add 3rdparty modules.
+if (NOT AFR_ENABLE_UNIT_TESTS)
+    add_subdirectory("libraries/3rdparty")
+endif()
+
+# -------------------------------------------------------------------------------------------------
+# Configure target board
+# -------------------------------------------------------------------------------------------------
+# If AFR_BOARD_PATH is provided, load CMakeList.txt file from this path instead of searching within our
+# directory tree. Note that AFR_BOARD_PATH is also defined in the other branch, so if this is the
+# second run of cmake this branch will be triggered anyway. But if the user provides AFR_BOARD_PATH,
+# we will not have the AFR_VENDOR_PATH, so we can use it to detect if this is just the second run
+# of a normal use case or user indeed passed AFR_BOARD_PATH.
+# Note: this feature is generally only meant for vendor partners doing a qualification, end users who
+# are consuming only this repo should not use it.
+if(DEFINED AFR_BOARD_PATH)
+    if(NOT DEFINED AFR_VENDOR_PATH)
+        # Add type to this variable so it will display in GUI, value will not change.
+        set(AFR_BOARD_PATH "" CACHE STRING "Custom board path provided by user")
+        message("Loading board code from a custom location: ${AFR_BOARD_PATH}.")
+    endif()
+    if(NOT DEFINED AFR_BOARD_NAME)
+        get_filename_component(AFR_BOARD_NAME "${AFR_BOARD_PATH}" NAME CACHE)
+    endif()
+else()
+    # Get list of supported boards.
+    afr_get_boards(AFR_SUPPORTED_BOARDS)
+
+    set(AFR_BOARD "vendor.board" CACHE STRING "Target board chosen by the user at configure time")
+    set_property(CACHE AFR_BOARD PROPERTY STRINGS ${AFR_SUPPORTED_BOARDS})
+
+    string(REGEX MATCH [[(.+)\.(.+)]] __match_result ${AFR_BOARD})
+    set(AFR_VENDOR_NAME ${CMAKE_MATCH_1} CACHE INTERNAL "MCU vendor name")
+    set(AFR_BOARD_NAME ${CMAKE_MATCH_2} CACHE INTERNAL "MCU board name")
+
+    # Abort if the target board is not supported, i.e., corresponding folder is not present.
+    if(NOT AFR_BOARD IN_LIST AFR_SUPPORTED_BOARDS)
+        message(FATAL_ERROR "Board is not supported: ${AFR_BOARD}")
     endif()
 
-else()  # BOOTLOADER_BUILD
-
-    if(CONFIG_BOOTLOADER_COMPILER_OPTIMIZATION_SIZE)
-        list(APPEND compile_options "-Os")
-        list(APPEND compile_options "-freorder-blocks")
-    elseif(CONFIG_BOOTLOADER_COMPILER_OPTIMIZATION_DEBUG)
-        list(APPEND compile_options "-Og")
-    elseif(CONFIG_BOOTLOADER_COMPILER_OPTIMIZATION_NONE)
-        list(APPEND compile_options "-O0")
-    elseif(CONFIG_BOOTLOADER_COMPILER_OPTIMIZATION_PERF)
-        list(APPEND compile_options "-O2")
-    endif()
-
-endif()
-
-if(CONFIG_COMPILER_CXX_EXCEPTIONS)
-    list(APPEND cxx_compile_options "-fexceptions")
-else()
-    list(APPEND cxx_compile_options "-fno-exceptions")
-endif()
-
-if(CONFIG_COMPILER_CXX_RTTI)
-    list(APPEND cxx_compile_options "-frtti")
-else()
-    list(APPEND cxx_compile_options "-fno-rtti")
-    list(APPEND link_options "-fno-rtti")           # used to invoke correct multilib variant (no-rtti) during linking
-endif()
-
-if(CONFIG_COMPILER_DISABLE_GCC8_WARNINGS)
-    list(APPEND compile_options "-Wno-parentheses"
-                                "-Wno-sizeof-pointer-memaccess"
-                                "-Wno-clobbered")
-
-    list(APPEND compile_options "-Wno-format-overflow"
-                                "-Wno-stringop-truncation"
-                                "-Wno-misleading-indentation"
-                                "-Wno-cast-function-type"
-                                "-Wno-implicit-fallthrough"
-                                "-Wno-unused-const-variable"
-                                "-Wno-switch-unreachable"
-                                "-Wno-format-truncation"
-                                "-Wno-memset-elt-size"
-                                "-Wno-int-in-bool-context")
-endif()
-
-if(CONFIG_COMPILER_WARN_WRITE_STRINGS)
-    list(APPEND compile_options "-Wwrite-strings")
-endif()
-
-if(CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_DISABLE)
-    list(APPEND compile_definitions "-DNDEBUG")
-endif()
-
-if(CONFIG_COMPILER_STACK_CHECK_MODE_NORM)
-    list(APPEND compile_options "-fstack-protector")
-elseif(CONFIG_COMPILER_STACK_CHECK_MODE_STRONG)
-    list(APPEND compile_options "-fstack-protector-strong")
-elseif(CONFIG_COMPILER_STACK_CHECK_MODE_ALL)
-    list(APPEND compile_options "-fstack-protector-all")
-endif()
-
-list(APPEND link_options "-fno-lto")
-
-idf_build_set_property(COMPILE_OPTIONS "${compile_options}" APPEND)
-idf_build_set_property(C_COMPILE_OPTIONS "${c_compile_options}" APPEND)
-idf_build_set_property(CXX_COMPILE_OPTIONS "${cxx_compile_options}" APPEND)
-idf_build_set_property(COMPILE_DEFINITIONS "${compile_definitions}" APPEND)
-idf_build_set_property(LINK_OPTIONS "${link_options}" APPEND)
-
-idf_build_get_property(build_component_targets __BUILD_COMPONENT_TARGETS)
-
-# Add each component as a subdirectory, processing each component's CMakeLists.txt
-foreach(component_target ${build_component_targets})
-    __component_get_property(dir ${component_target} COMPONENT_DIR)
-    __component_get_property(_name ${component_target} COMPONENT_NAME)
-    __component_get_property(prefix ${component_target} __PREFIX)
-    __component_get_property(alias ${component_target} COMPONENT_ALIAS)
-    set(COMPONENT_NAME ${_name})
-    set(COMPONENT_DIR ${dir})
-    set(COMPONENT_ALIAS ${alias})
-    set(COMPONENT_PATH ${dir}) # for backward compatibility only, COMPONENT_DIR is preferred
-    idf_build_get_property(build_prefix __PREFIX)
-    set(__idf_component_context 1)
-    if(NOT prefix STREQUAL build_prefix)
-        add_subdirectory(${dir} ${prefix}_${_name})
+    # Import board CMake build.
+    set(AFR_VENDOR_PATH "vendors/${AFR_VENDOR_NAME}" CACHE INTERNAL "")
+    include("${AFR_VENDOR_PATH}/manifest.cmake")
+    if(DEFINED AFR_MANIFEST_BOARD_DIR_${AFR_BOARD_NAME})
+        set(AFR_BOARD_PATH "${AFR_VENDOR_PATH}/${AFR_MANIFEST_BOARD_DIR_${AFR_BOARD_NAME}}" CACHE INTERNAL "")
+    elseif(DEFINED AFR_MANIFEST_BOARD_DIR)
+        set(AFR_BOARD_PATH "${AFR_VENDOR_PATH}/${AFR_MANIFEST_BOARD_DIR}/${AFR_BOARD_NAME}" CACHE INTERNAL "")
     else()
-        add_subdirectory(${dir} ${_name})
+        message(FATAL_ERROR "Could not import board CMakeLists.txt.")
     endif()
-    set(__idf_component_context 0)
-endforeach()
+endif()
+
+# Use include here because we need portable layer targets defined by vendor to be at
+# the same directory level as our library components.
+include("${AFR_BOARD_PATH}/CMakeLists.txt")
+if (AFR_ENABLE_UNIT_TESTS)
+    return()
+endif()
+
+# -------------------------------------------------------------------------------------------------
+# Conditionally set mbedtls config
+# -------------------------------------------------------------------------------------------------
+# Use the FreeRTOS mbedTLS config file required by demos if there's not a preexisting one
+get_target_property(mbedtls_comp_defs afr_3rdparty_mbedtls COMPILE_DEFINITIONS)
+string(FIND "${mbedtls_comp_defs}" "MBEDTLS_CONFIG_FILE" mbedtls_config_pos)
+if( "${mbedtls_config_pos}" EQUAL "-1")
+    target_include_directories(
+        afr_3rdparty_mbedtls
+        PUBLIC
+        "${AFR_3RDPARTY_DIR}/mbedtls_config"
+    )
+    target_compile_definitions(
+        afr_3rdparty_mbedtls
+        PUBLIC
+        -DMBEDTLS_CONFIG_FILE="aws_mbedtls_config.h"
+        -DCONFIG_MEDTLS_USE_AFR_MEMORY
+    )
+    
+    if (${AFR_SEPARATE_MBEDTLS_SOURCE_BUILD})
+        target_include_directories(
+            afr_3rdparty_mbedtls_part2
+            PUBLIC
+            "${AFR_3RDPARTY_DIR}/mbedtls_config"
+        )
+        target_compile_definitions(
+            afr_3rdparty_mbedtls_part2
+            PUBLIC
+            -DMBEDTLS_CONFIG_FILE="aws_mbedtls_config.h"
+            -DCONFIG_MEDTLS_USE_AFR_MEMORY
+        )
+    endif()
+endif()
+
+# -------------------------------------------------------------------------------------------------
+# FreeRTOS modules
+# -------------------------------------------------------------------------------------------------
+# Do not prefix the output library file.
+set(CMAKE_STATIC_LIBRARY_PREFIX "")
+
+
+# Initialize all modules.
+add_subdirectory("libraries")
+add_subdirectory("demos")
+add_subdirectory("tests")
+
+# Resolve dependencies.
+afr_status("=========================Resolving dependencies==========================")
+afr_resolve_dependencies()
+
+if(DEFINED CBMC)
+    add_subdirectory("tools/cbmc/proofs")
+    list(FILTER cbmc_proof_names EXCLUDE REGEX "^$")
+    list(TRANSFORM cbmc_proof_names APPEND "-goto" OUTPUT_VARIABLE all_proof_targets)
+    add_custom_target("cbmc" DEPENDS ${all_proof_targets})
+endif()
+
+# -------------------------------------------------------------------------------------------------
+# Summary
+# -------------------------------------------------------------------------------------------------
+afr_status("")
+afr_status("====================Configuration for FreeRTOS====================")
+afr_status("  Version:                 " "${AFR_VERSION}")
+afr_status("  Git version:             " "${AFR_VERSION_VCS}")
+
+# ================ Target microcontroller =================
+afr_status("")
+afr_status("Target microcontroller:")
+
+afr_get_board_metadata(vendor_name VENDOR_NAME)
+afr_get_board_metadata(board_name  DISPLAY_NAME)
+afr_get_board_metadata(description DESCRIPTION)
+afr_get_board_metadata(family      FAMILY_NAME)
+afr_get_board_metadata(data_ram    DATA_RAM_MEMORY)
+afr_get_board_metadata(program_mem PROGRAM_MEMORY)
+
+afr_status("  vendor:                  " "${vendor_name}")
+afr_status("  board:                   " "${board_name}")
+afr_status("  description:             " "${description}")
+afr_status("  family:                  " "${family}")
+afr_status("  data ram size:           " "${data_ram}")
+afr_status("  program memory size:     " "${program_mem}")
+
+# ===================== Host platform =====================
+afr_status("")
+afr_status("Host platform:")
+
+afr_status("  OS:                      " "${CMAKE_HOST_SYSTEM}")
+afr_status("  Toolchain:               " "${AFR_TOOLCHAIN}")
+afr_status("  Toolchain path:          " "${CMAKE_FIND_ROOT_PATH}")
+afr_status("  CMake generator:         " "${CMAKE_GENERATOR}")
+
+# ================ FreeRTOS modules ================
+afr_status("")
+afr_status("FreeRTOS modules:")
+
+afr_status("  Modules to build:        " "${AFR_MODULES_BUILD}")
+afr_status("  Enabled by user:         " "${AFR_MODULES_ENABLED_USER}")
+afr_status("  Enabled by dependency:   " "${AFR_MODULES_ENABLED_DEPS}")
+afr_status("  3rdparty dependencies:   " "${3RDPARTY_MODULES_ENABLED}")
+afr_status("  Available demos:         " "${AFR_DEMOS_ENABLED}")
+afr_status("  Available tests:         " "${AFR_TESTS_ENABLED}")
+
+afr_status("=========================================================================")
+afr_status("")
+
+# -------------------------------------------------------------------------------------------------
+# Demos and tests
+# -------------------------------------------------------------------------------------------------
+# Enable us to use targets defined in vendor CMake files.
+cmake_policy(SET CMP0079 NEW)
+
+if(TARGET aws_demos)
+    list(TRANSFORM AFR_DEMOS_ENABLED PREPEND "AFR::" OUTPUT_VARIABLE demos_list)
+    target_link_libraries(aws_demos PRIVATE ${demos_list})
+endif()
+
+if(TARGET aws_tests)
+    list(TRANSFORM AFR_TESTS_ENABLED PREPEND "AFR::" OUTPUT_VARIABLE tests_list)
+    target_link_libraries(aws_tests PRIVATE ${tests_list})
+endif()
+
+# -------------------------------------------------------------------------------------------------
+# Output metadata information
+# -------------------------------------------------------------------------------------------------
+if(AFR_METADATA_MODE)
+    afr_write_metadata()
+endif()

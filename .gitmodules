@@ -1,88 +1,115 @@
-#
-# All the relative URL paths are intended to be GitHub ones
-# For Espressif's public projects please use '../../espressif/proj', not a '../proj'
-#
-
-[submodule "components/esptool_py/esptool"]
-	path = components/esptool_py/esptool
-	url = ../../espressif/esptool.git
-
-[submodule "components/bt/controller/lib"]
-	path = components/bt/controller/lib
-	url = ../../espressif/esp32-bt-lib.git
-
-[submodule "components/bootloader/subproject/components/micro-ecc/micro-ecc"]
-	path = components/bootloader/subproject/components/micro-ecc/micro-ecc
-	url = ../../kmackay/micro-ecc.git
-
-[submodule "components/coap/libcoap"]
-	path = components/coap/libcoap
-	url = ../../obgm/libcoap.git
-
-[submodule "components/nghttp/nghttp2"]
-	path = components/nghttp/nghttp2
-	url = ../../nghttp2/nghttp2.git
-
-[submodule "components/libsodium/libsodium"]
-	path = components/libsodium/libsodium
-	url = ../../jedisct1/libsodium.git
-
-[submodule "components/spiffs/spiffs"]
-	path = components/spiffs/spiffs
-	url = ../../pellepl/spiffs.git
-
-[submodule "components/json/cJSON"]
-	path = components/json/cJSON
-	url = ../../DaveGamble/cJSON.git
-
-[submodule "components/mbedtls/mbedtls"]
-	path = components/mbedtls/mbedtls
-	url = ../../espressif/mbedtls.git
-
-[submodule "components/asio/asio"]
-	path = components/asio/asio
-	url = ../../espressif/asio.git
-
-[submodule "components/expat/expat"]
-	path = components/expat/expat
-	url = ../../libexpat/libexpat.git
-
-[submodule "components/lwip/lwip"]
-	path = components/lwip/lwip
-	url = ../../espressif/esp-lwip.git
-
-[submodule "components/mqtt/esp-mqtt"]
-	path = components/mqtt/esp-mqtt
-	url = ../../espressif/esp-mqtt.git
-
-[submodule "components/protobuf-c/protobuf-c"]
-	path = components/protobuf-c/protobuf-c
-	url = ../../protobuf-c/protobuf-c.git
-
-[submodule "components/unity/unity"]
-	path = components/unity/unity
-	url = ../../ThrowTheSwitch/Unity.git
-
-[submodule "examples/build_system/cmake/import_lib/main/lib/tinyxml2"]
-	path = examples/build_system/cmake/import_lib/main/lib/tinyxml2
-	url = ../../leethomason/tinyxml2.git
-
-[submodule "components/bt/host/nimble/nimble"]
-	path = components/bt/host/nimble/nimble
-	url = ../../espressif/esp-nimble.git
-
-[submodule "components/cbor/tinycbor"]
-	path = components/cbor/tinycbor
-	url = ../../intel/tinycbor.git
-
-[submodule "components/esp_wifi/lib"]
-	path = components/esp_wifi/lib
-	url = ../../espressif/esp32-wifi-lib.git
-
-[submodule "components/tinyusb/tinyusb"]
-	path = components/tinyusb/tinyusb
-	url = ../../espressif/tinyusb.git
-
-[submodule "examples/peripherals/secure_element/atecc608_ecdsa/components/esp-cryptoauthlib"]
-	path = examples/peripherals/secure_element/atecc608_ecdsa/components/esp-cryptoauthlib
-	url = ../../espressif/esp-cryptoauthlib.git
+[submodule "unity"]
+	path = libraries/3rdparty/unity
+	url = https://github.com/ThrowTheSwitch/Unity.git
+	branch = v2.4.3
+[submodule "freertos_kernel"]
+	path = freertos_kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+[submodule "pkcs11"]
+	path = libraries/3rdparty/pkcs11
+	url = https://github.com/amazon-freertos/pkcs11.git
+	branch = v2.40_errata01
+[submodule "lwip"]
+	path = libraries/3rdparty/lwip
+	url = https://github.com/lwip-tcpip/lwip.git
+[submodule "libraries/3rdparty/CMock"]
+	path = libraries/3rdparty/CMock
+	url = https://github.com/ThrowTheSwitch/CMock.git
+[submodule "vendors/espressif/esp-idf"]
+	path = vendors/espressif/esp-idf
+	url = https://github.com/espressif/esp-afr-sdk.git
+	branch = release/v4.2
+[submodule "mbedtls"]
+	path = libraries/3rdparty/mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git
+	branch = mbedtls-2.28
+[submodule "libraries/abstractions/pkcs11/psa"]
+	path = libraries/abstractions/pkcs11/psa
+	url = https://github.com/Linaro/freertos-pkcs11-psa.git
+[submodule "libraries/coreMQTT"]
+	path = libraries/coreMQTT
+	url = https://github.com/FreeRTOS/coreMQTT.git
+[submodule "libraries/coreJSON"]
+	path = libraries/coreJSON
+	url = https://github.com/FreeRTOS/coreJSON.git
+[submodule "libraries/abstractions/pkcs11/corePKCS11"]
+	path = libraries/abstractions/pkcs11/corePKCS11
+	url = https://github.com/FreeRTOS/corePKCS11.git
+[submodule "libraries/freertos_plus/standard/freertos_plus_tcp"]
+	path = libraries/freertos_plus/standard/freertos_plus_tcp
+	url = https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git
+[submodule "libraries/device_shadow_for_aws"]
+	path = libraries/device_shadow_for_aws
+	url = https://github.com/aws/device-shadow-for-aws-iot-embedded-sdk.git
+[submodule "libraries/coreHTTP"]
+	path = libraries/coreHTTP
+	url = https://github.com/FreeRTOS/coreHTTP.git
+[submodule "libraries/jobs_for_aws"]
+	path = libraries/jobs_for_aws
+	url = https://github.com/aws/jobs-for-aws-iot-embedded-sdk.git
+[submodule "libraries/device_defender_for_aws"]
+	path = libraries/device_defender_for_aws
+	url = https://github.com/aws/device-defender-for-aws-iot-embedded-sdk.git
+[submodule "libraries/abstractions/backoff_algorithm"]
+	path = libraries/abstractions/backoff_algorithm
+	url = https://github.com/FreeRTOS/backoffAlgorithm.git
+[submodule "libraries/coreMQTT-Agent"]
+	path = libraries/coreMQTT-Agent
+	url = https://github.com/FreeRTOS/coreMQTT-Agent.git
+[submodule "vendors/cypress/MTB/libraries/serial-flash"]
+	path = vendors/cypress/MTB/libraries/serial-flash
+	url = https://github.com/cypresssemiconductorco/serial-flash.git
+[submodule "vendors/cypress/MTB/libraries/whd-bsp-integration"]
+	path = vendors/cypress/MTB/libraries/whd-bsp-integration
+	url = https://github.com/cypresssemiconductorco/whd-bsp-integration.git
+[submodule "vendors/cypress/MTB/libraries/retarget-io"]
+	path = vendors/cypress/MTB/libraries/retarget-io
+	url = https://github.com/cypresssemiconductorco/retarget-io.git
+[submodule "vendors/cypress/MTB/libraries/rgb-led"]
+	path = vendors/cypress/MTB/libraries/rgb-led
+	url = https://github.com/cypresssemiconductorco/rgb-led.git
+[submodule "vendors/cypress/MTB/libraries/core-lib"]
+	path = vendors/cypress/MTB/libraries/core-lib
+	url = https://github.com/cypresssemiconductorco/core-lib.git
+[submodule "vendors/cypress/MTB/libraries/abstraction-rtos"]
+	path = vendors/cypress/MTB/libraries/abstraction-rtos
+	url = https://github.com/cypresssemiconductorco/abstraction-rtos.git
+[submodule "vendors/cypress/MTB/psoc6/psoc6cm0p"]
+	path = vendors/cypress/MTB/psoc6/psoc6cm0p
+	url = https://github.com/cypresssemiconductorco/psoc6cm0p.git
+[submodule "vendors/cypress/MTB/libraries/capsense"]
+	path = vendors/cypress/MTB/libraries/capsense
+	url = https://github.com/cypresssemiconductorco/capsense.git
+[submodule "vendors/cypress/MTB/libraries/connectivity-utilities"]
+	path = vendors/cypress/MTB/libraries/connectivity-utilities
+	url = https://github.com/cypresssemiconductorco/connectivity-utilities.git
+[submodule "vendors/cypress/MTB/libraries/wifi-host-driver"]
+	path = vendors/cypress/MTB/libraries/wifi-host-driver
+	url = https://github.com/cypresssemiconductorco/wifi-host-driver.git
+[submodule "vendors/cypress/MTB/libraries/clib-support"]
+	path = vendors/cypress/MTB/libraries/clib-support
+	url = https://github.com/cypresssemiconductorco/clib-support.git
+[submodule "vendors/cypress/MTB/psoc6/psoc6make"]
+	path = vendors/cypress/MTB/psoc6/psoc6make
+	url = https://github.com/cypresssemiconductorco/psoc6make.git
+[submodule "vendors/cypress/MTB/psoc6/psoc6pdl"]
+	path = vendors/cypress/MTB/psoc6/psoc6pdl
+	url = https://github.com/cypresssemiconductorco/psoc6pdl.git
+[submodule "vendors/cypress/MTB/psoc6/udb-sdio-whd"]
+	path = vendors/cypress/MTB/psoc6/udb-sdio-whd
+	url = https://github.com/cypresssemiconductorco/udb-sdio-whd.git
+[submodule "vendors/cypress/MTB/psoc6/psoc6hal"]
+	path = vendors/cypress/MTB/psoc6/psoc6hal
+	url = https://github.com/cypresssemiconductorco/psoc6hal.git
+[submodule "vendors/cypress/MTB/libraries/lpa"]
+	path = vendors/cypress/MTB/libraries/lpa
+	url = https://github.com/cypresssemiconductorco/lpa.git
+[submodule "vendors/cypress/MTB/libraries/kv-store"]
+	path = vendors/cypress/MTB/libraries/kv-store
+	url = https://github.com/cypresssemiconductorco/kv-store.git
+[submodule "libraries/ota_for_aws"]
+	path = libraries/ota_for_aws
+	url = https://github.com/aws/ota-for-aws-iot-embedded-sdk.git
+[submodule "libraries/abstractions/ota_pal_psa"]
+	path = libraries/abstractions/ota_pal_psa
+	url = https://github.com/Linaro/freertos-ota-pal-psa.git
