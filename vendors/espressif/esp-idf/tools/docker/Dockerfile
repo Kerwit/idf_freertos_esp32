@@ -55,10 +55,7 @@ RUN echo IDF_CHECKOUT_REF=$IDF_CHECKOUT_REF IDF_CLONE_BRANCH_OR_TAG=$IDF_CLONE_B
     fi
 
 # Install all the required tools, plus CMake
-RUN $IDF_PATH/tools/idf_tools.py --non-interactive install required \
-  && $IDF_PATH/tools/idf_tools.py --non-interactive install cmake \
-  && $IDF_PATH/tools/idf_tools.py --non-interactive install-python-env \
-  && rm -rf $IDF_TOOLS_PATH/dist
+RUN $IDF_PATH/install.sh
 
 # Ccache is installed, enable it by default
 ENV IDF_CCACHE_ENABLE=1
